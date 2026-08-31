@@ -1,199 +1,163 @@
-# Loan Approval: Advanced Analysis and Feature Engineering
+# Loan Approval: Data Preparation for Machine Learning
 
-> Statistical analysis, feature engineering, responsible feature selection, and leakage-safe machine-learning preparation for historical loan-approval data.
+> Cleaning, feature engineering, encoding, scaling, outlier assessment, and feature selection for a 614-record loan-approval dataset.
 
-**Programme:** AnalystLab Africa Data Science Internship — Week 3  
+**Programme:** AnalystLab Africa Data Science Internship — Week 2  
 **Project phase:** Completed  
 **Author:** [Wilson Moses](https://github.com/WilsonMoses-Data)
 
 ## Project overview
 
-This project investigates 614 historical loan applications to identify the characteristics associated with loan approval and prepare a documented dataset for later predictive modelling.
+This project transforms raw loan-application data into clean analytical and machine-learning-ready datasets. The work documents each preprocessing choice so later modelling can begin from a consistent, numeric, and interpretable foundation.
 
-Building on the cleaning completed during Week 2, the work moves beyond descriptive summaries into statistical inference, multivariate exploration, engineered financial indicators, responsible feature decisions, and a preprocessing workflow designed to limit data leakage.
+> **Goal:** Prepare the data responsibly for a future model that estimates historical loan-approval outcomes; this repository does not claim to deliver or deploy a production lending model.
 
-> **Business question:** Which applicant, household, financial, and credit-related characteristics are associated with historical loan decisions, and how can those characteristics be prepared responsibly for predictive modelling?
+## Dataset
 
-## Objectives
+- **Source:** [Loan Prediction Dataset — Kaggle](https://www.kaggle.com/datasets/altruistdelhite04/loan-prediction-problem-dataset)
+- **Records:** 614 applications
+- **Original columns:** 13
+- **Target:** `Loan_Status` (`Y` = approved, `N` = not approved)
 
-1. Validate the quality and consistency of the cleaned dataset.
-2. Examine distributions, outliers, approval patterns, and relationships.
-3. Test whether observed relationships are statistically supported.
-4. Create interpretable household, income, credit, and repayment features.
-5. Select useful modelling features while controlling redundancy and fairness risks.
-6. Prepare training and testing data without fitting transformations on held-out observations.
-7. Translate technical evidence into business recommendations.
+## Business and technical questions
 
-## Dataset summary
+1. Which fields contain missing values?
+2. Which variables require encoding or scaling?
+3. Which features are redundant or strongly correlated?
+4. Do apparent outliers represent errors or plausible applicants?
+5. Which features provide the strongest early evidence for later modelling?
+6. Is the final dataset complete, numeric, and ready for the next analytical phase?
 
-| Measure | Result |
-|---|---:|
-| Applications analysed | 614 |
-| Approved applications | 422 |
-| Rejected applications | 192 |
-| Overall approval rate | 68.73% |
-| Engineered features created | 12 |
-| Final analytical columns | 26 |
-| Selected source modelling features | 12 |
-| Encoded modelling features | 13 |
-| Training observations | 491 |
-| Held-out testing observations | 123 |
+## Workflow
 
-The target is `loan_status`, represented as `Y`/`N` in the source and `1`/`0` for numerical analysis.
+### 1. Inspection
 
-## Tools and technologies
+- Reviewed shape, data types, summary statistics, and duplicate records.
+- Identified missing values across `Gender`, `Married`, `Dependents`, `Self_Employed`, `LoanAmount`, `Loan_Amount_Term`, and `Credit_History`.
+- Confirmed that no exact duplicate rows were present.
 
-- Python and Jupyter Notebook
-- pandas and NumPy
-- Matplotlib and Seaborn
-- SciPy
-- scikit-learn: `mutual_info_classif`, `train_test_split`, `ColumnTransformer`, `OneHotEncoder`, and `StandardScaler`
+### 2. Missing-value treatment
 
-## Analytical workflow
+| Variable type or field | Treatment | Rationale |
+|---|---|---|
+| Gender, married, dependents, self-employed | Mode | Low missingness and no established unknown category |
+| Loan amount | Median | More resistant to extreme values than the mean |
+| Loan amount term | Mode | Discrete repeated term values, with 360 months dominant |
+| Credit history | Mode | Binary categorical flag |
 
-### 1. Advanced data-quality assessment
+The cleaned dataset was verified to contain no missing values or duplicates.
 
-The notebook checks dimensions, data types, missing values, duplicates, categorical consistency, invalid numerical values, engineered-feature calculations, IQR outliers, and target balance.
+### 3. Feature engineering
 
-### 2. Exploratory analysis
+- Removed `Loan_ID` because it is a unique identifier rather than an explanatory feature.
+- Created `total_income = applicant_income + coapplicant_income`.
+- Created `loan_income_ratio = loan_amount / total_income` as a simple affordability indicator.
+- Renamed columns to `snake_case`.
 
-The analysis includes:
+### 4. Encoding
 
-- financial distributions and log transformations;
-- categorical frequencies and approval rates;
-- cross-tabulations and row percentages;
-- numerical comparisons by outcome;
-- Pearson and Spearman correlations; and
-- combined credit-history and property-area analysis.
-
-### 3. Statistical analysis
-
-| Question | Method | Result | Interpretation |
-|---|---|---|---|
-| Credit history vs. approval | Chi-square | `p < 0.001`; Cramér’s V = `0.536` | Strong association |
-| Property area vs. approval | Chi-square | `p = 0.002`; Cramér’s V = `0.142` | Significant but comparatively weak association |
-| Total income by outcome | Mann–Whitney U | `p = 0.713` | No significant independent difference |
-| Loan amount by outcome | Mann–Whitney U | `p = 0.398` | No significant independent difference |
-| Total income across property areas | Kruskal–Wallis | `p = 0.140` | No significant difference |
-| Total income vs. loan amount | Spearman correlation | `rho = 0.688`; `p < 0.001` | Strong positive relationship |
-
-Nonparametric methods were used for right-skewed financial variables. Statistical significance was assessed at `alpha = 0.05`.
-
-### 4. Feature engineering
-
-Twelve features were created:
-
-| Feature | Purpose |
+| Variable | Treatment |
 |---|---|
-| `dependents_numeric` | Numerical representation of dependents |
-| `family_size` | Estimated household size |
-| `family_size_group` | Interpretable household-size band |
-| `income_band` | Descriptive household-income range |
-| `has_coapplicant_income` | Indicates a coapplicant income contribution |
-| `coapplicant_income_share` | Share of household income from the coapplicant |
-| `term_years` | Repayment term in years |
-| `estimated_monthly_principal` | Approximate monthly principal payment |
-| `payment_income_ratio` | Approximate repayment burden relative to income |
-| `credit_risk_category` | Business-readable credit-history category |
-| `log_total_income` | Reduced-skew household income |
-| `log_loan_amount` | Reduced-skew requested amount |
+| `gender`, `married`, `education`, `self_employed` | Binary encoding |
+| `credit_history` | Binary type correction |
+| `dependents` | Custom numerical encoding, with `3+` represented as `3` |
+| `property_area` | One-hot encoding with a dropped reference category |
+| `loan_status` | `Y → 1`, `N → 0` |
 
-The affordability measures are proxies. Interest, existing debt, expenses, insurance, and verified monthly obligations are unavailable.
+### 5. Scaling
 
-### 5. Feature selection
+`StandardScaler` was applied to continuous fields whose different units and ranges can affect scale-sensitive models:
 
-Final source features were selected using statistical evidence, mutual information, interpretability, redundancy, and responsible-use considerations.
+- `applicant_income`
+- `coapplicant_income`
+- `loan_amount`
+- `loan_amount_term`
+- `total_income`
+- `loan_income_ratio`
 
-```python
-final_selected_features = [
-    "married",
-    "dependents_numeric",
-    "education",
-    "self_employed",
-    "property_area",
-    "credit_history",
-    "log_total_income",
-    "log_loan_amount",
-    "term_years",
-    "has_coapplicant_income",
-    "coapplicant_income_share",
-    "payment_income_ratio",
-]
-```
+### 6. Outlier assessment
 
-`gender` was excluded from predictive inputs because it can function as a protected characteristic. It remains relevant for fairness monitoring and subgroup evaluation.
+Boxplots and the IQR rule identified potential outliers. They were retained because the extreme income and loan values appeared plausible rather than obvious data-entry errors.
 
-### 6. Leakage-safe ML preparation
+| Feature | IQR outliers detected |
+|---|---:|
+| `applicant_income` | 50 |
+| `total_income` | 50 |
+| `loan_amount` | 41 |
+| `loan_income_ratio` | 25 |
+| `coapplicant_income` | 18 |
 
-1. Separate predictors and target.
-2. Create a stratified 80/20 split using `random_state=42`.
-3. Fit categorical encoding and continuous scaling on training data only.
-4. Apply the fitted transformations to held-out data.
-5. Export analytical and model-ready datasets.
+### 7. Feature selection
 
-## Key findings
+- `applicant_income` and engineered `total_income` had a correlation of approximately `0.89`.
+- `applicant_income` was removed from the published ML-ready dataset to reduce redundancy.
+- `credit_history` showed the strongest relationship with the target in the initial evidence.
+- Random Forest feature importance was used as an exploratory screening tool, not as final causal or policy evidence.
 
-- Credit history is the dominant observed factor associated with approval.
-- Applicants with positive credit history had a 79.05% approval rate, compared with 7.87% for those without positive credit history.
-- Property area has a statistically significant but much weaker relationship with approval.
-- Total income and loan amount are strongly related to each other, but neither shows a significant independent difference between approval outcomes in the selected tests.
-- The engineered repayment-burden indicator improves interpretability but cannot substitute for a complete affordability assessment.
-- Statistical association does not establish causation or justify automated lending decisions.
+## Outputs
+
+| File | Rows | Columns | Purpose |
+|---|---:|---:|---|
+| `loan_prediction_cleaned.csv` | 614 | 14 | Cleaned and feature-engineered analytical data |
+| `loan_prediction_ml_ready.csv` | 614 | 13 | Numeric, encoded, scaled, reduced-redundancy data |
+
+Both published outputs contain zero missing values and zero exact duplicates.
 
 ## Repository contents
 
 ```text
-Loan-Prediction-Advanced-Data-Exploration-Statistical-Analysis-Feature-Engineering/
+loan-prediction-feature-engineering/
 ├── README.md
 ├── LICENSE
-├── Advance_Analysis_Loan_Predicition.ipynb
-├── Business_Insights_Report.pdf
-├── Statistical_Analysis_Report.pdf
-├── Feature_Engineering_Documentation.pdf
-├── loan_prediction_week3_final_cleaned.csv
-├── loan_prediction_week3_ml_ready.csv
-├── loan_prediction_week3_train.csv
-└── week3_updated_data_dictionary.csv
+├── Load_Prediction_Data_Inspection.ipynb
+├── Prediction_Loan_Train.csv
+├── loan_prediction_cleaned.csv
+├── loan_prediction_ml_ready.csv
+├── Business Understanding Report - Loan Prediction.pdf
+└── Data Preprocessing Report.pdf
 ```
 
-### Key deliverables
+### Key files
 
-- [`Advance_Analysis_Loan_Predicition.ipynb`](Advance_Analysis_Loan_Predicition.ipynb) — complete executed analysis.
-- [`Business_Insights_Report.pdf`](Business_Insights_Report.pdf) — decision-oriented findings and recommendations.
-- [`Statistical_Analysis_Report.pdf`](Statistical_Analysis_Report.pdf) — statistical methods and results.
-- [`Feature_Engineering_Documentation.pdf`](Feature_Engineering_Documentation.pdf) — definitions and rationale for engineered features.
-- [`week3_updated_data_dictionary.csv`](week3_updated_data_dictionary.csv) — updated field documentation.
+- [`Load_Prediction_Data_Inspection.ipynb`](Load_Prediction_Data_Inspection.ipynb) — executed preprocessing and feature-selection notebook.
+- [`Business Understanding Report - Loan Prediction.pdf`](Business%20Understanding%20Report%20-%20Loan%20Prediction.pdf) — business framing and analytical objectives.
+- [`Data Preprocessing Report.pdf`](Data%20Preprocessing%20Report.pdf) — documented preparation decisions and outputs.
+
+## Tools used
+
+- Python and Jupyter Notebook
+- pandas and NumPy
+- Matplotlib and Seaborn
+- scikit-learn: `StandardScaler`, `train_test_split`, and `RandomForestClassifier`
 
 ## Reproducing the analysis
 
 1. Clone the repository.
 2. Create a Python environment.
-3. Install Jupyter, pandas, NumPy, Matplotlib, Seaborn, SciPy, and scikit-learn.
-4. Open `Advance_Analysis_Loan_Predicition.ipynb`.
-5. Confirm the data path used in the loading cell.
+3. Install Jupyter, pandas, NumPy, Matplotlib, Seaborn, and scikit-learn.
+4. Open `Load_Prediction_Data_Inspection.ipynb`.
+5. Confirm the raw CSV path used in the loading cell.
 6. Run the notebook from top to bottom.
-
-A pinned dependency file should be added to make future reproduction more reliable.
 
 ## Limitations
 
-- The dataset is small and represents historical decisions, not objective creditworthiness.
-- Historical approval patterns may contain policy or social bias.
-- Important affordability factors are unavailable.
-- The work prepares data for modelling but does not present a validated production model.
-- Findings describe association and should not be interpreted as causal effects.
+- Mode imputation can reinforce the most common category and reduce variation.
+- Scaling was performed within this data-preparation phase; future predictive work should fit transformations on training data only.
+- Random Forest importance can be unstable and does not establish causation.
+- Historical approval decisions may reflect policy or social bias.
+- The affordability ratio omits interest, existing debt, expenses, and other obligations.
 
 ## Next steps
 
-- Correct the notebook filename from `Predicition` to `Prediction`.
-- Add a dependency file and reproducibility instructions tied to a Python version.
-- Train and compare interpretable classification baselines.
-- Evaluate calibration, decision thresholds, subgroup performance, and error costs.
-- Consolidate this phase with the Week 2 preparation work into one end-to-end case study when programme reporting permits.
+- Rename the notebook to `Loan_Prediction_Data_Preparation.ipynb`.
+- Add a pinned dependency file.
+- Move raw and processed datasets into separate folders.
+- Continue with statistical analysis and leakage-safe train/test preprocessing.
+- Consolidate this work with the Week 3 repository when programme reporting permits.
 
 ## Licence and data source
 
-Original code and documentation are released under the repository’s [MIT Licence](LICENSE). The loan dataset remains subject to the terms of its [original Kaggle source](https://www.kaggle.com/datasets/altruistdelhite04/loan-prediction-problem-dataset).
+Original code and documentation are released under the repository’s [MIT Licence](LICENSE). The dataset remains subject to the terms of its [original Kaggle source](https://www.kaggle.com/datasets/altruistdelhite04/loan-prediction-problem-dataset).
 
 ## Contact
 
