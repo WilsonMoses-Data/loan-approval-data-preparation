@@ -131,8 +131,11 @@ loan-approval-data-preparation/
 │       └── loan_prediction_ml_ready.csv
 ├── images/
 │   ├── approval-outcomes.png
+│   ├── feature-importance.png
 │   ├── missing-values.png
+│   ├── outlier-counts.png
 │   ├── social-preview.png
+│   ├── wilson-moses-logo.png
 │   └── wilson-moses-banner.png
 ├── notebooks/
 │   └── 01_loan_approval_data_preparation.ipynb
@@ -141,6 +144,7 @@ loan-approval-data-preparation/
 │   └── data_preprocessing_report.pdf
 └── scripts/
     ├── generate_readme_visuals.py
+    ├── generate_reports.py
     └── prepare_data.py
 ```
 
@@ -174,6 +178,7 @@ Reproduce the processed datasets and README visuals:
 ```bash
 python scripts/prepare_data.py
 python scripts/generate_readme_visuals.py
+python scripts/generate_reports.py
 jupyter lab notebooks/01_loan_approval_data_preparation.ipynb
 ```
 
@@ -182,7 +187,7 @@ jupyter lab notebooks/01_loan_approval_data_preparation.ipynb
 - [Business Understanding Report](reports/business_understanding_report.pdf)
 - [Data Preprocessing Report](reports/data_preprocessing_report.pdf)
 
-The public report copies retain the original assignment content but omit private phone and email details.
+The reports use the current Wilson Moses visual identity and omit private phone and email details.
 
 ## Limitations and responsible use
 

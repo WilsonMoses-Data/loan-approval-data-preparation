@@ -46,7 +46,9 @@ def create_social_preview() -> None:
     fig.text(0.10, 0.45, "DATA PREPARATION", color=OFF_WHITE, fontsize=23, weight="bold")
     fig.text(0.10, 0.30, "614 applications  •  cleaning  •  feature engineering", color=GREY, fontsize=10)
     fig.text(0.10, 0.17, "WILSON MOSES  |  DATA SCIENCE × AI ENGINEERING", color=GOLD, fontsize=10)
-    fig.text(0.88, 0.48, "WM", color=GOLD, fontsize=38, weight="bold", ha="center")
+    logo_axis = fig.add_axes((0.78, 0.32, 0.18, 0.34))
+    logo_axis.imshow(plt.imread(IMAGE_DIR / "wilson-moses-logo.png"))
+    logo_axis.set_axis_off()
     fig.savefig(IMAGE_DIR / "social-preview.png", facecolor=DARK)
     plt.close(fig)
 
@@ -102,4 +104,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
